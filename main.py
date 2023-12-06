@@ -1,11 +1,17 @@
 import os
 import json
+from tkinter import filedialog
 import requests
 import tkinter as tk
+from threading import Thread
+from pystray import Icon, MenuItem as item
+from PIL import Image
 
 #constantes 
-api_key_virustotal = '068e683a9bad1c79f52815fa16a51545ec1545a8a6e94dc05db1f84f73475287'
-valida_erro = False 
+API_KEY_VIRUSTOTAL = '068e683a9bad1c79f52815fa16a51545ec1545a8a6e94dc05db1f84f73475287'
+VALIDA_ERRO = False
+DIRETORIO_SELECIONADO = ""
+ANALISE_EM_ANDAMENTO = False
 
 #funcoes
 def verifica_virustotal_api(api_key, diretorio):
@@ -56,60 +62,86 @@ def verifica_virustotal_api(api_key, diretorio):
         pass
 
 def valida_diretorio():
-    #print("Bunga")
     diretorio_label_str = diretorio_label.get()
-    #print(diretorio_label_str)
 
-    if diretorio_label.get() == "":
-        diretorio_label.insert(0,"Erro - Informe o diretorio")
-        valida_erro = True 
-    
-    elif os.path.isdir(diretorio_label_str): 
+    if DIRETORIO_SELECIONADO == "":
+        diretorio_label.insert(0, "Erro - Informe o diretório")
+        global VALIDA_ERRO
+        VALIDA_ERRO = True
+
+    elif os.path.isdir(diretorio_label_str):
         pass
     else:
-        diretorio_label.insert(0,"Erro - Diretorio invalido -> ")
-        valida_erro = True 
-
-    return None 
+        diretorio_label.insert(0, "Erro - Diretório inválido -> ")
+        VALIDA_ERRO = True
 
 def verifica_chamada_api():
-    valida_diretorio()
-    verifica_virustotal_api(api_key_virustotal,diretorio_label.get())
+    global DIRETORIO_SELECIONADO
+    if not DIRETORIO_SELECIONADO:
+        # Adicione uma label informando que o diretório não está selecionado
+        diretorio_label.config(state='normal')
+        diretorio_label.delete(0, tk.END)
+        diretorio_label.insert(0, "Erro: Selecione um diretório antes de iniciar a análise")
+    else:
+        verifica_virustotal_api(API_KEY_VIRUSTOTAL, DIRETORIO_SELECIONADO)
 
+
+def selecionar_diretorio():
+    global DIRETORIO_SELECIONADO
+    DIRETORIO_SELECIONADO = filedialog.askdirectory()
+    if DIRETORIO_SELECIONADO:
+        diretorio_label.delete(0, tk.END)
+        diretorio_label.insert(0, DIRETORIO_SELECIONADO)
+
+def para_analise():
+    global ANALISE_EM_ANDAMENTO
+    ANALISE_EM_ANDAMENTO = False
+
+def on_minimize(icon, item):
+    window.iconify()
+    
 # Tela principal
 window = tk.Tk()
-window.iconbitmap(r'C:\Users\U362062\Documents\Scripts\AntiVirus\antivirus_app\antivirus_suite.ico')
+window.iconbitmap(r'/Users/lucasparreira/Documents/Projects/app_antivirus/antivirus_suite.ico')
+#window.iconbitmap(r'C:\Users\U362062\Documents\Scripts\AntiVirus\antivirus_app\antivirus_suite.ico')
 window.title("VirusTotal App")
-window.geometry("400x200")
+window.geometry("600x200")
 
-select_text = r'C:\Users\U362062\Documents'
-#select_button = tk.Button(text="Iniciar analise", command=verificar_virus_virustotal(api_key_virustotal, select_text))
-diretorio_label_titulo = tk.Label(text= r"Informe o diretorio a ser analisado - ex: C:\Users\U362062\Documents")
-diretorio_label_titulo.place(x=5,y=10)
-#diretorio_label_titulo.pack()
-diretorio_label = tk.Entry(width=40)
-diretorio_label.place(x=8,y=35)
-#diretorio_label.pack()
+# Adiciona um ícone à bandeja do sistema
+#image = Image.open(r'/Users/lucasparreira/Documents/Projects/app_antivirus/antivirus_suite.ico')
+#image = Image.open(r'C:\Users\U362062\Documents\Scripts\AntiVirus\antivirus_app\antivirus_suite.ico')
+#menu_def = (item('Parar Análise', para_analise),)
+#icon = Icon("name", image, "Title", menu_def)
+#icon.run(on_minimize)
 
+diretorio_label_titulo = tk.Label(text="Informe o diretório a ser analisado")
+diretorio_label_titulo.place(x=5, y=10)
 
-select_button = tk.Button(text="Iniciar analise", command=verifica_chamada_api)
-select_button.place(x=5,y=70)
-#select_button.pack()
+diretorio_label = tk.Entry(width=37, state='disabled')
+diretorio_label.place(x=160, y=35)
 
-# Cria a label para exibir os totais 
-result_label_01 = tk.Label(text= "Total de arquivos analisados")
-result_label_01.place(x=5,y=110)
-#result_label_01.pack(side="left",pady=2,padx=5)
+select_button = tk.Button(text="Iniciar análise", command=verifica_chamada_api)
+select_button.place(x=5, y=70)
+
+btn_parar_analise = tk.Button(text="Parar Análise", command=para_analise)
+btn_parar_analise.place(x=120, y=70)
+
+btn_selecionar_diretorio = tk.Button(text="Selecionar Diretório", command=selecionar_diretorio)
+btn_selecionar_diretorio.place(x=5, y=35)
+
+result_label_01 = tk.Label(text="Total de arquivos analisados")
+result_label_01.place(x=5, y=110)
+
 result_label_02 = tk.Entry(width=4)
-result_label_02.place(x=170,y=110)
-#result_label_02.pack(side="left",pady=2,padx=2)
+result_label_02.place(x=190, y=110)
 
-result_label_03 = tk.Label(text= "Total de arquivos infectados")
-result_label_03.place(x=5,y=150)
-#result_label_03.pack(pady=4,padx=5,side="left")
+result_label_03 = tk.Label(text="Total de arquivos infectados")
+result_label_03.place(x=5, y=150)
+
 result_label_04 = tk.Entry(width=4)
-result_label_04.place(x=170,y=150)
-#result_label_04.pack(pady=4,padx=2,side="left")
+result_label_04.place(x=190, y=150)
 
-# Mantem a janela do app ativa
+# label_status = tk.Label(text="")
+# label_status.place(x=5, y=180)
+
 window.mainloop()
