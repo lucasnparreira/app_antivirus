@@ -1,2 +1,2 @@
-# app_antivirus
- Api do site VirusTotal consumida com Python + tkinter
+# antivirus_app
+ AntiVirus desenvolvido em Python + tkinter utilizando a API do site VirusTotal
