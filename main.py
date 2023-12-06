@@ -10,8 +10,12 @@ from PIL import Image
 #constantes 
 API_KEY_VIRUSTOTAL = '068e683a9bad1c79f52815fa16a51545ec1545a8a6e94dc05db1f84f73475287'
 VALIDA_ERRO = False
-DIRETORIO_SELECIONADO = ""
+#DIRETORIO_SELECIONADO = ""
 ANALISE_EM_ANDAMENTO = False
+
+# Variáveis de resultados
+total_arquivos_analisados = 0
+total_arquivos_infectados = 0
 
 #funcoes
 def verifica_virustotal_api(api_key, diretorio):
@@ -55,9 +59,12 @@ def verifica_virustotal_api(api_key, diretorio):
 
     print(f"Total de arquivos analisados : {total_arquivos}")
     print(f"Total de arquivos infectados : {arquivos_infectados}")
-    if total_arquivos > 0 and arquivos_infectados > 0: 
-        result_label_02.insert(0,f"{total_arquivos}")
-        result_label_04.insert(0,f"{arquivos_infectados}")
+    if total_arquivos_analisados > 0 and total_arquivos_infectados > 0:
+        result_label_02.delete(0, tk.END)
+        result_label_02.insert(0, f"{total_arquivos_analisados}")
+
+        result_label_04.delete(0, tk.END)
+        result_label_04.insert(0, f"{total_arquivos_infectados}")
     else:
         pass
 
@@ -67,23 +74,28 @@ def valida_diretorio():
     if DIRETORIO_SELECIONADO == "":
         diretorio_label.insert(0, "Erro - Informe o diretório")
         global VALIDA_ERRO
-        VALIDA_ERRO = True
+        #VALIDA_ERRO = True
 
     elif os.path.isdir(diretorio_label_str):
         pass
     else:
         diretorio_label.insert(0, "Erro - Diretório inválido -> ")
-        VALIDA_ERRO = True
+        #VALIDA_ERRO = True
 
 def verifica_chamada_api():
-    global DIRETORIO_SELECIONADO
-    if not DIRETORIO_SELECIONADO:
-        # Adicione uma label informando que o diretório não está selecionado
-        diretorio_label.config(state='normal')
-        diretorio_label.delete(0, tk.END)
-        diretorio_label.insert(0, "Erro: Selecione um diretório antes de iniciar a análise")
-    else:
+    global total_arquivos_analisados, total_arquivos_infectados
+    valida_diretorio()
+
+    if not VALIDA_ERRO and DIRETORIO_SELECIONADO:
+        total_arquivos_analisados = 0
+        total_arquivos_infectados = 0
         verifica_virustotal_api(API_KEY_VIRUSTOTAL, DIRETORIO_SELECIONADO)
+    else:
+        diretorio_label.config(state='normal')
+        pass
+        # Adicione uma label informando que o diretório não está selecionado
+        #diretorio_label.delete(0, tk.END)
+        #diretorio_label.insert(0, "Erro: Selecione um diretório antes de iniciar a análise")
 
 
 def selecionar_diretorio():
@@ -92,6 +104,7 @@ def selecionar_diretorio():
     if DIRETORIO_SELECIONADO:
         diretorio_label.delete(0, tk.END)
         diretorio_label.insert(0, DIRETORIO_SELECIONADO)
+
 
 def para_analise():
     global ANALISE_EM_ANDAMENTO
