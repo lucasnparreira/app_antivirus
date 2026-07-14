@@ -9,7 +9,7 @@ from pystray import Icon, MenuItem as item
 from PIL import Image
 
 #constantes 
-API_KEY_VIRUSTOTAL = '068e683a9bad1c79f52815fa16a51545ec1545a8a6e94dc05db1f84f73475287'
+API_KEY_VIRUSTOTAL = ''
 VALIDA_ERRO = False
 DIRETORIO_SELECIONADO = ""
 ANALISE_EM_ANDAMENTO = False
